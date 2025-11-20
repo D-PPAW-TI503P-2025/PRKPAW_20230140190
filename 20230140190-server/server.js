@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require("express");
 const cors = require("cors");
 const app = express();
@@ -8,7 +10,7 @@ const morgan = require("morgan");
 const presensiRoutes = require("./routes/presensi");
 const reportRoutes = require("./routes/reports");
 
-const authRoutes = require("./routes/auth"); // Impor rute otentikasi
+const authRoutes = require("./routes/auth");
 
 // Middleware
 app.use(cors());

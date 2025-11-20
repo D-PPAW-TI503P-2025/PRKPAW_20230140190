@@ -1,15 +1,13 @@
-// 1. Ganti sumber data dari array ke model Sequelize
 const { Presensi } = require("../models");
 const { format } = require("date-fns-tz");
 const timeZone = "Asia/Jakarta";
 
 exports.CheckIn = async (req, res) => {
-  // 2. Gunakan try...catch untuk error handling
   try {
-    const { id: userId, nama: userName } = req.user;
+    const userId = req.user.id; // Ambil dari payload JWT
+    const userName = req.user.nama; // Ambil dari payload JWT
     const waktuSekarang = new Date();
 
-    // 3. Ubah cara mencari data menggunakan 'findOne' dari Sequelize
     const existingRecord = await Presensi.findOne({
       where: { userId: userId, checkOut: null },
     });
@@ -20,16 +18,14 @@ exports.CheckIn = async (req, res) => {
         .json({ message: "Anda sudah melakukan check-in hari ini." });
     }
 
-    // 4. Ubah cara membuat data baru menggunakan 'create' dari Sequelize
     const newRecord = await Presensi.create({
       userId: userId,
-      nama: userName,
       checkIn: waktuSekarang,
     });
 
     const formattedData = {
       userId: newRecord.userId,
-      nama: newRecord.nama,
+      nama: userName, // Dari token, bukan dari database
       checkIn: format(newRecord.checkIn, "yyyy-MM-dd HH:mm:ssXXX", { timeZone }),
       checkOut: null
     };
@@ -48,12 +44,11 @@ exports.CheckIn = async (req, res) => {
 };
 
 exports.CheckOut = async (req, res) => {
-  // Gunakan try...catch
   try {
-    const { id: userId, nama: userName } = req.user;
+    const userId = req.user.id;
+    const userName = req.user.nama;
     const waktuSekarang = new Date();
 
-    // Cari data di database
     const recordToUpdate = await Presensi.findOne({
       where: { userId: userId, checkOut: null },
     });
@@ -64,13 +59,12 @@ exports.CheckOut = async (req, res) => {
       });
     }
 
-    // 5. Update dan simpan perubahan ke database
     recordToUpdate.checkOut = waktuSekarang;
     await recordToUpdate.save();
 
     const formattedData = {
       userId: recordToUpdate.userId,
-      nama: recordToUpdate.nama,
+      nama: userName,
       checkIn: format(recordToUpdate.checkIn, "yyyy-MM-dd HH:mm:ssXXX", { timeZone }),
       checkOut: format(recordToUpdate.checkOut, "yyyy-MM-dd HH:mm:ssXXX", { timeZone }),
     };
@@ -88,6 +82,7 @@ exports.CheckOut = async (req, res) => {
   }
 };
 
+// Fungsi delete dan update bisa tetap sama, karena tidak memerlukan perubahan signifikan
 exports.deletePresensi = async (req, res) => {
   try {
     const { id: userId } = req.user;
@@ -118,9 +113,7 @@ exports.deletePresensi = async (req, res) => {
 exports.updatePresensi = async (req, res) => {
   try {
     const presensiId = req.params.id;
-    const { checkIn, checkOut, nama } = req.body;
 
-    // 🔹 Cek apakah body kosong
     if (checkIn === undefined && checkOut === undefined && nama === undefined) {
       return res.status(400).json({
         message:
@@ -128,7 +121,6 @@ exports.updatePresensi = async (req, res) => {
       });
     }
 
-    // 🔹 Validasi format tanggal (kalau dikirim)
     if (
       (checkIn && isNaN(Date.parse(checkIn))) ||
       (checkOut && isNaN(Date.parse(checkOut)))
@@ -138,7 +130,6 @@ exports.updatePresensi = async (req, res) => {
       });
     }
 
-    // 🔹 Cari data presensi berdasarkan ID
     const recordToUpdate = await Presensi.findByPk(presensiId);
     if (!recordToUpdate) {
       return res
@@ -146,7 +137,6 @@ exports.updatePresensi = async (req, res) => {
         .json({ message: "Catatan presensi tidak ditemukan." });
     }
 
-    // 🔹 Update data hanya jika ada perubahan
     recordToUpdate.checkIn = checkIn || recordToUpdate.checkIn;
     recordToUpdate.checkOut = checkOut || recordToUpdate.checkOut;
     recordToUpdate.nama = nama || recordToUpdate.nama;
@@ -164,6 +154,4 @@ exports.updatePresensi = async (req, res) => {
     });
   }
 };
-
-
 
