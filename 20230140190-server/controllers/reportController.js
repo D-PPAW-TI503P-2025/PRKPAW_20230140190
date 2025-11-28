@@ -1,33 +1,36 @@
+const models = require("../models");
 const { Op } = require("sequelize");
-const { Presensi, User } = require("../models");
 
 exports.getDailyReport = async (req, res) => {
   try {
-    let where = {};
-    if (req.query.nama) {
-      const user = await User.findOne({
-        where: { nama: { [Op.like]: `%${req.query.nama}%` } }
-      });
-      if (user) {
-        where.userId = user.id;
-      }
+    const { nama } = req.query;
+
+    let options = {
+      include: [
+        {
+          model: models.User, // ✅ Gunakan models.User
+          as: "user",         // ✅ Sesuai dengan as: 'user' di Presensi.belongsTo
+          attributes: ["nama","role"],
+        },
+      ],
+    };
+
+    if (nama) {
+      options.include[0].where = {
+        nama: {
+          [Op.like]: `%${nama}%`,
+        },
+      };
     }
 
-    const records = await Presensi.findAll({
-      where,
-      include: [{
-        model: User,
-        attributes: ['nama']
-      }],
-      order: [['checkIn', 'DESC']]
-    });
+    const records = await models.Presensi.findAll(options); // ✅ models.Presensi
 
     res.json({
       reportDate: new Date().toLocaleDateString("id-ID"),
       data: records,
     });
-
   } catch (error) {
+    console.error("Error di getDailyReport:", error); // ✅ Lihat error di terminal
     res.status(500).json({
       message: "Gagal mengambil laporan",
       error: error.message,

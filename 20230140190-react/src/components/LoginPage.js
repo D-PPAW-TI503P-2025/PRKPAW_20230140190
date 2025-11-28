@@ -22,7 +22,7 @@ function LoginPage() {
             const token = response.data.token;
             localStorage.setItem('token', token);
 
-            navigate('/');
+            navigate('/dashboard');
 
         } catch (err) {
             // 4. Tangani error dari server
@@ -80,6 +80,16 @@ function LoginPage() {
                     <p className="text-red-600 text-sm mt-4 text-center">{error}</p>
                 )}
             </div>
+            {/* Tambahkan ini di bawah error message */}
+            <p className="mt-4 text-sm text-gray-600 text-center">
+                Belum punya akun?{' '}
+                <button
+                    onClick={() => navigate('/register')}
+                    className="text-blue-600 hover:underline font-medium"
+                >
+                    Daftar di sini
+                </button>
+            </p>
         </div>
     );
 }

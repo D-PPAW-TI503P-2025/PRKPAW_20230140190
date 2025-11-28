@@ -7,6 +7,7 @@ exports.CheckIn = async (req, res) => {
     const userId = req.user.id; // Ambil dari payload JWT
     const userName = req.user.nama; // Ambil dari payload JWT
     const waktuSekarang = new Date();
+    const { latitude, longitude } = req.body;
 
     const existingRecord = await Presensi.findOne({
       where: { userId: userId, checkOut: null },
@@ -21,6 +22,8 @@ exports.CheckIn = async (req, res) => {
     const newRecord = await Presensi.create({
       userId: userId,
       checkIn: waktuSekarang,
+      latitude: latitude || null,
+      longitude: longitude || null,
     });
 
     const formattedData = {

@@ -13,11 +13,11 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Users', // pastikan nama tabel benar
-          key: 'id'
+          model: "Users",
+          key: "id",
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
       checkIn: {
         type: Sequelize.DATE,
@@ -34,7 +34,15 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
-      }
+      },
+      latitude: {
+        type: Sequelize.DECIMAL(10, 7),
+        allowNull: false,
+      },
+      longitude: {
+        type: Sequelize.DECIMAL(10, 7),
+        allowNull: false,
+      },
     });
   },
   async down(queryInterface, Sequelize) {
