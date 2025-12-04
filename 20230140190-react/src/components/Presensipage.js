@@ -1,6 +1,7 @@
 // src/components/PresensiPage.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
+import Webcam from "react-webcam";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import icon from "leaflet/dist/images/marker-icon.png";
@@ -21,14 +22,28 @@ function PresensiPage() {
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
-    const [coords, setCoords] = useState(null); // {lat, lng}
+    const [coords, setCoords] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    // ✅ TAMBAHAN UNTUK FOTO
+    const [image, setImage] = useState(null);
+    const webcamRef = useRef(null);
 
     const getToken = () => {
         return localStorage.getItem("token");
     };
 
-    // Fungsi untuk mendapatkan lokasi pengguna
+    // ===============================
+    // ✅ AMBIL FOTO
+    // ===============================
+    const capture = useCallback(() => {
+        const imageSrc = webcamRef.current.getScreenshot();
+        setImage(imageSrc);
+    }, [webcamRef]);
+
+    // ===============================
+    // ✅ AMBIL LOKASI (TETAP)
+    // ===============================
     const getLocation = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -49,16 +64,28 @@ function PresensiPage() {
             setIsLoading(false);
         }
     };
+
     useEffect(() => {
         getLocation();
     }, []);
 
+    // ===============================
+    // ✅ CHECK-IN + FOTO (DIUPDATE)
+    // ===============================
     const handleCheckIn = async () => {
-        if (!coords) {
-            setError("Lokasi belum didapatkan. Mohon izinkan akses lokasi.");
+        if (!coords || !image) {
+            setError("Lokasi dan foto wajib ada!");
             return;
         }
+
         try {
+            const blob = await (await fetch(image)).blob();
+            const formData = new FormData();
+
+            formData.append("latitude", coords.lat);
+            formData.append("longitude", coords.lng);
+            formData.append("image", blob, "selfie.jpg");
+
             const config = {
                 headers: {
                     Authorization: `Bearer ${getToken()}`,
@@ -66,21 +93,22 @@ function PresensiPage() {
             };
 
             const response = await axios.post(
-                "http://localhost:5000/api/presensi/check-in",
-                // Kirim data lokasi bersama request
-                {
-                    latitude: coords.lat,
-                    longitude: coords.lng,
-                },
+                "http://localhost:5000/api/presensi/check-in", // ✅ SESUAI BACKEND MULTER
+                formData,
                 config
             );
 
             setMessage(response.data.message);
+            setError("");
+            setImage(null);
         } catch (err) {
             setError(err.response ? err.response.data.message : "Check-in gagal");
         }
     };
 
+    // ===============================
+    // ✅ CHECK-OUT (TETAP)
+    // ===============================
     const handleCheckOut = async () => {
         setError("");
         setMessage("");
@@ -121,7 +149,7 @@ function PresensiPage() {
                             style={{ height: "300px", width: "100%" }}
                         >
                             <TileLayer
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             />
                             <Marker position={[coords.lat, coords.lng]}>
@@ -131,10 +159,42 @@ function PresensiPage() {
                     </div>
                 </div>
             )}
-            <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-center">
+
+            <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-3xl text-center">
                 <h2 className="text-3xl font-bold mb-6 text-gray-800">
                     Lakukan Presensi
                 </h2>
+
+                {/* ✅ KAMERA */}
+                <div className="mb-4 border rounded overflow-hidden bg-black h-[400px]">
+                    {image ? (
+                        <img src={image} alt="Selfie" className="w-full" />
+                    ) : (
+                        <Webcam
+                            audio={false}
+                            ref={webcamRef}
+                            screenshotFormat="image/jpeg"
+                            className="w-full"
+                        />
+                    )}
+                </div>
+
+
+                {!image ? (
+                    <button
+                        onClick={capture}
+                        className="bg-blue-600 text-white px-4 py-2 rounded w-full mb-3"
+                    >
+                        Ambil Foto 📸
+                    </button>
+                ) : (
+                    <button
+                        onClick={() => setImage(null)}
+                        className="bg-gray-500 text-white px-4 py-2 rounded w-full mb-3"
+                    >
+                        Foto Ulang 🔄
+                    </button>
+                )}
 
                 {message && <p className="text-green-600 mb-4">{message}</p>}
                 {error && <p className="text-red-600 mb-4">{error}</p>}
@@ -144,7 +204,7 @@ function PresensiPage() {
                         onClick={handleCheckIn}
                         className="w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-md shadow-sm hover:bg-green-700"
                     >
-                        Check-In
+                        Check-In + Selfie
                     </button>
 
                     <button

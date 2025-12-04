@@ -7,6 +7,7 @@ function ReportPage() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedImage, setSelectedImage] = useState(null);
 
     const fetchReports = async (query) => {
         const token = localStorage.getItem("token");
@@ -18,123 +19,175 @@ function ReportPage() {
         try {
             const config = {
                 headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            };
-
-            const baseUrl = "http://localhost:5000/api/reports/daily";
-            const url = query ? `${baseUrl}?nama=${query}` : baseUrl;
-
-            const response = await axios.get(url, config);
-            setReports(response.data.data);
-            setError(null);
-        } catch (err) {
-            setReports([]);
-            setError(
-                err.response ? err.response.data.message : "Gagal mengambil data"
-            );
-        }
+                    Authorization: `Bearer ${ token }`,
+        },
     };
 
-    useEffect(() => {
-        fetchReports("");
-    }, [navigate]);
-    const handleSearchSubmit = (e) => {
-        e.preventDefault();
-        fetchReports(searchTerm);
-    };
+    const baseUrl = "http://localhost:5000/api/reports/daily";
+    const url = query ? `${ baseUrl }?nama = ${ query }`: baseUrl;
 
-    return (
-        <div className="max-w-6xl mx-auto p-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">
-                Laporan Presensi Harian
-            </h1>
+    const response = await axios.get(url, config);
+    setReports(response.data.data);
+    setError(null);
+} catch (err) {
+    setReports([]);
+    setError(
+        err.response ? err.response.data.message : "Gagal mengambil data"
+    );
+}
+  };
 
-            <form onSubmit={handleSearchSubmit} className="mb-6 flex space-x-2">
-                <input
-                    type="text"
-                    placeholder="Cari berdasarkan nama..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-                <button
-                    type="submit"
-                    className="py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700"
-                >
-                    Cari
-                </button>
-            </form>
+useEffect(() => {
+    fetchReports("");
+}, [navigate]);
 
-            {error && (
-                <p className="text-red-600 bg-red-100 p-4 rounded-md mb-4">{error}</p>
-            )}
+const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    fetchReports(searchTerm);
+};
 
-            {!error && (
-                <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Nama
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Check-In
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Check-Out
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Latitude
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Longitude
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {reports.length > 0 ? (
-                                reports.map((presensi) => (
+return (
+    <div className="max-w-6xl mx-auto p-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">
+            Laporan Presensi Harian
+        </h1>
+
+        {/* Search */}
+        <form onSubmit={handleSearchSubmit} className="mb-6 flex space-x-2">
+            <input
+                type="text"
+                placeholder="Cari berdasarkan nama..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button
+                type="submit"
+                className="py-2 px-4 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700"
+            >
+                Cari
+            </button>
+        </form>
+
+        {error && (
+            <p className="text-red-600 bg-red-100 p-4 rounded-md mb-4">{error}</p>
+        )}
+
+        {!error && (
+            <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Nama
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Check-In
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Check-Out
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Latitude
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Longitude
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Bukti Foto
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {reports.length > 0 ? (
+                            reports.map((presensi) => {
+                                // --- FIX BACKSLASH PATH ---
+                                const fixedPath = presensi.buktiFoto
+                                    ? presensi.buktiFoto.replace(/\\/g, "/")
+                                    : null;
+
+                                return (
                                     <tr key={presensi.id}>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {presensi.user ? `${presensi.user.nama} (${presensi.user.role})` : "N/A"}
+                                            {presensi.user ? presensi.user.nama : "N/A"}
                                         </td>
+
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {new Date(presensi.checkIn).toLocaleString("id-ID", {
                                                 timeZone: "Asia/Jakarta",
                                             })}
                                         </td>
+
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {presensi.checkOut
-                                                ? new Date(presensi.checkOut).toLocaleString("id-ID", {
-                                                    timeZone: "Asia/Jakarta",
-                                                })
+                                                ? new Date(presensi.checkOut).toLocaleString(
+                                                    "id-ID",
+                                                    {
+                                                        timeZone: "Asia/Jakarta",
+                                                    }
+                                                )
                                                 : "Belum Check-Out"}
                                         </td>
+
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {presensi.latitude || "N/A"}
                                         </td>
+
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {presensi.longitude || "N/A"}
                                         </td>
+
+                                        {/* Bukti Foto */}
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {fixedPath ? (
+                                                <img
+                                                    src={`http://localhost:5000/${fixedPath}`}
+                                                alt = "Bukti Foto"
+                            className="w-12 h-12 rounded object-cover border cursor-pointer"
+                                            onClick={() =>
+                                                setSelectedImage(
+                                                    `http://localhost:5000/${fixedPath}`
+                                            )
+                            }
+                          />
+                                            ) : (
+                                            "Tidak ada foto"
+                        )}
+                                        </td>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td
-                                        colSpan="3"
-                                        className="px-6 py-4 text-center text-gray-500"
-                                    >
-                                        Tidak ada data yang ditemukan.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            )}
-        </div>
-    );
+                                );
+                            })
+                        ) : (
+                            <tr>
+                                <td
+                                    colSpan="6"
+                                    className="px-6 py-4 text-center text-gray-500"
+                                >
+                                    Tidak ada data yang ditemukan.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        )}
+
+        {/* Modal Foto */}
+        {selectedImage && (
+            <div
+                className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+                onClick={() => setSelectedImage(null)}
+            >
+                <img
+                    src={selectedImage}
+                    alt="Foto Presensi"
+                    className="max-w-full max-h-full rounded-lg shadow-lg"
+                />
+            </div>
+        )}
+    </div>
+);
 }
 
 export default ReportPage;

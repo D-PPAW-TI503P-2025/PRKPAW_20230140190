@@ -11,6 +11,8 @@ const presensiRoutes = require("./routes/presensi");
 const reportRoutes = require("./routes/reports");
 
 const authRoutes = require("./routes/auth");
+const path = require('path');
+
 
 // Middleware
 app.use(cors());
@@ -28,6 +30,10 @@ app.use("/api/books", ruteBuku);
 app.use("/api/presensi", presensiRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/auth", authRoutes); // Daftarkan rute otentikasi
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+
 app.listen(PORT, () => {
   console.log(`Express server running at http://localhost:${PORT}/`);
 });
+
