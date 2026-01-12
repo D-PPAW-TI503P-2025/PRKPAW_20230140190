@@ -26,11 +26,13 @@ app.get("/", (req, res) => {
   res.send("Home Page for API");
 });
 const ruteBuku = require("./routes/books");
+const iotRoutes = require("./routes/iot");
 app.use("/api/books", ruteBuku);
 app.use("/api/presensi", presensiRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/auth", authRoutes); // Daftarkan rute otentikasi
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/api/iot", iotRoutes);
 
 
 app.listen(PORT, () => {
